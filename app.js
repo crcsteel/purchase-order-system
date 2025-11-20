@@ -54,6 +54,7 @@ async function gasPost(route, data = {}) {
 document.addEventListener("DOMContentLoaded", () => {
   checkSession();
   addItemRow();
+  loadVendorList();
 
   const toggleBtn = document.getElementById("togglePassword");
   if (toggleBtn) {
@@ -72,7 +73,67 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // ⭐⭐⭐ อันนี้คือตำแหน่งที่ถูกต้อง ⭐⭐⭐
+  const sup = document.getElementById("supplierName");
+  if (sup) {
+    sup.addEventListener("change", autoFillVendor);
+  }
 });
+
+async function loadVendorList() {
+  try {
+    const res = await gasGet("getVendors"); // ดึงรายการผู้ขายทั้งหมด
+    if (!res.success) return;
+
+    const vendorList = document.getElementById("vendorList");
+    vendorList.innerHTML = "";
+
+    res.data.forEach(v => {
+      vendorList.innerHTML += `<option value="${v.supplierName}"></option>`;
+    });
+
+  } catch (err) {
+    console.error("loadVendorList error:", err);
+  }
+}
+
+async function autoFillVendor() {
+  const supplierName = document.getElementById("supplierName").value.trim();
+  if (!supplierName) return;
+
+  try {
+    const res = await gasGet("getVendorInfo", { supplierName });
+
+    if (res.success) {
+      const v = res.data;
+
+      document.getElementById("taxID").value = v.taxID || "";
+      document.getElementById("phone").value = v.phone || "";
+      document.getElementById("address").value = v.address || "";
+      document.getElementById("credit").value = v.credit || "";
+      document.getElementById("attn").value = v.attn || "";
+
+      lockVendorFields(true);
+    } else {
+      lockVendorFields(false);
+    }
+  } catch (err) {
+    console.error("Auto vendor error:", err);
+  }
+}
+
+function lockVendorFields(lock) {
+  const fields = ["taxID", "phone", "address", "credit", "attn"];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.readOnly = lock;
+      el.style.background = lock ? "#f0f0f0" : "white";
+    }
+  });
+}
+
 
 function checkSession() {
   const username = localStorage.getItem("username");
@@ -915,4 +976,47 @@ async function editPurchaseOrder(invoiceNo) {
 
 function printPurchaseOrder() {
   window.print();
+}
+
+function openVendorModal() {
+  const modal = new bootstrap.Modal(document.getElementById("vendorModal"));
+  modal.show();
+}
+
+async function saveVendor() {
+  const vendor = {
+    supplierName: document.getElementById("v_name").value.trim(),
+    taxID: document.getElementById("v_tax").value.trim(),
+    phone: document.getElementById("v_phone").value.trim(),
+    address: document.getElementById("v_address").value.trim(),
+    credit: document.getElementById("v_credit").value.trim(),
+    attn: document.getElementById("v_attn").value.trim()
+  };
+
+  if (!vendor.supplierName) {
+    Swal.fire("กรุณากรอกชื่อผู้ขาย", "", "warning");
+    return;
+  }
+
+  Swal.fire({ title: "กำลังบันทึก...", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  try {
+    const res = await gasPost("saveVendor", vendor);
+    Swal.close();
+
+    if (res.success) {
+      Swal.fire("สำเร็จ", res.message, "success");
+
+      // โหลด vendor list ใหม่
+      loadVendorList();
+
+      // ปิด Modal
+      bootstrap.Modal.getInstance(document.getElementById("vendorModal")).hide();
+    } else {
+      Swal.fire("ผิดพลาด", res.message, "error");
+    }
+
+  } catch (err) {
+    Swal.fire("ผิดพลาด", "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "error");
+  }
 }
