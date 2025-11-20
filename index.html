@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Order Management</title>
+    <link rel="icon" type="image/png" href="./imgs/logo-crc.png">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Font K2D -->
+    <link href="https://fonts.googleapis.com/css2?family=K2D:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  
+
+</head>
+<body>
+
+<!-- ================= LOGIN PAGE ================= -->
+    <div id="login-section" class="d-flex justify-content-center align-items-center vh-100 login-bg">
+
+
+    <div class="card shadow-lg border-0" style="border-radius:20px; width:420px; overflow:hidden;">
+        
+        <!-- Header -->
+            <div class="text-center p-4" 
+                style="background:linear-gradient(45deg,#42a5f5,#1e88e5); color:#005baa;">
+
+            <!-- กล่อง flex จัดเรียงโลโก้ + ไอคอน -->
+            <div class="d-flex justify-content-center align-items-center mb-2">
+                <img src="./imgs/logo-crc.png" alt="Company Logo" style="height:64px;">
+            </div>
+
+            <i class="bi bi-box-arrow-in-right me-2" style="font-size:1.5rem; color:#ffffff;"></i>
+            <p class="mb-0" style="font-size:0.9rem; color:#ffffff;">Purchase Order Management</p>
+            </div>
+        <!-- Body -->
+        <div class="card-body p-4">
+        <form onsubmit="login(event)">
+            <!-- Username -->
+            <div class="mb-3">
+            <label class="form-label fw-bold">ชื่อผู้ใช้</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" class="form-control" id="username" placeholder="กรอกชื่อผู้ใช้" required>
+            </div>
+            </div>
+            
+            <!-- Password -->
+            <div class="mb-3">
+            <label class="form-label fw-bold">รหัสผ่าน</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input type="password" class="form-control" id="password" placeholder="••••••••" required>
+                <button class="input-group-text" type="button" id="togglePassword">
+                    <i class="bi bi-eye" id="toggleIcon"></i>
+                </button>
+            </div>
+            </div>
+            <!-- Login Button -->
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" 
+                    style="border-radius:10px; background:linear-gradient(45deg,#42a5f5,#1e88e5); border:none;">
+            <i class="bi bi-door-open"></i> เข้าสู่ระบบ
+            </button>
+        </form>
+        </div>
+        <!-- Footer -->
+        <div class="text-center p-3" style="font-size:0.85rem; color:#888;">
+        © 2025 CRC Steel
+        </div>
+    </div>
+    </div>
+<!-- ================= APP ================= -->
+    <div id="app-section" class="main-container">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-custom">
+            <div class="container-fluid">
+                <a class="navbar-brand text-white fw-bold" href="#">
+                    <img src="./imgs/logo-crc.png" alt="Company Logo" style="height:34px;">
+                    ระบบจัดการใบสั่งซื้อ
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" onclick="showSection('dashboard', this)">
+                                <i class="bi bi-speedometer2 me-1"></i>แดชบอร์ด
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('create', this)">
+                                <i class="bi bi-plus-circle me-1"></i>สร้างใบสั่งซื้อ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('approve', this)">
+                                <i class="bi bi-check-circle me-1"></i>ยืนยันสถานะ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('history', this)">
+                                <i class="bi bi-clock-history me-1"></i>ประวัติใบสั่งซื้อ
+                            </a>
+                        </li>
+                        <!-- <li class="nav-item d-none" id="nav-backup">
+                            <a class="nav-link" href="#" onclick="showSection('backup', this)">
+                                <i class="bi bi-shield-check me-1"></i>จัดการข้อมูล
+                            </a>
+                        </li> -->
+                        <button class="btn btn-outline-light ms-3" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i> ออกจากระบบ 
+                        </button>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="content-section active">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="total-pos">0</div>
+                        <div class="stats-label">ใบสั่งซื้อทั้งหมด</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="draft-pos">0</div>
+                        <div class="stats-label">ร่าง</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="approved-pos">0</div>
+                        <div class="stats-label">อนุมัติ</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="total-amount">0</div>
+                        <div class="stats-label">มูลค่ารวม (บาท)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>ใบสั่งซื้อล่าสุด</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="recent-pos-table">
+                                    <thead>
+                                        <tr>
+                                            <th>เลขที่ PO</th>
+                                            <th>วันที่</th>
+                                            <th>ผู้ขาย</th>
+                                            <th>ยอดรวม</th>
+                                            <th>สถานะ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recent-po-tbody">
+                                        <!-- Recent POs will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Create Purchase Order Section -->
+<div id="create-section" class="content-section">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>สร้างใบสั่งซื้อใหม่</h5>
+                </div>
+
+                <div class="card-body">
+                    <form id="po-form">
+
+                        <!-- PO Header Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">เลขที่ใบสั่งซื้อ</label>
+                                <input type="text" class="form-control" id="invoiceNo" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">วันที่</label>
+                                <input type="date" class="form-control" id="poDate" required>
+                            </div>
+                        </div>
+
+                        <!-- Supplier Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">ข้อมูลผู้ขาย</h6>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- ผู้ขาย -->
+                                    <div class="col-12 mb-3 position-relative">
+                                        <label class="form-label fw-bold">ผู้ขาย</label>
+                                        <input type="text" id="supplierName" class="form-control" placeholder="พิมพ์ชื่อผู้ขาย...">
+                                        <div id="supplier-dropdown" class="list-group position-absolute w-100" style="z-index:1000; display:none;"></div>
+                                    </div>
+
+                                    <!-- TaxID + Phone -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">เลขประจำตัวผู้เสียภาษี</label>
+                                        <input type="text" class="form-control" id="taxID">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">เบอร์โทรศัพท์</label>
+                                        <input type="text" class="form-control" id="phone">
+                                    </div>
+
+                                    <!-- Address -->
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label fw-bold">ที่อยู่</label>
+                                        <textarea class="form-control" id="address"></textarea>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">เครดิต (วัน)</label>
+                                        <input type="number" class="form-control" id="credit" value="0">
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">เรียน</label>
+                                        <input type="text" class="form-control" id="attn">
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">อ้างอิง</label>
+                                        <input type="text" class="form-control" id="referNote">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Items -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">รายการสินค้า</h6>
+                                <button type="button" class="btn btn-success btn-sm" onclick="addItemRow()">
+                                    <i class="bi bi-plus"></i> เพิ่มสินค้า
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="items-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ลำดับ</th>
+                                                <th>สินค้า</th>
+                                                <th>จำนวน</th>
+                                                <th>ราคา</th>
+                                                <th>หน่วย</th>
+                                                <th>ส่วนลด</th>
+                                                <th>รวม</th>
+                                                <th>จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="items-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary + Remark -->
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card h-100">
+                                    <div class="card-header"><h6 class="mb-0">หมายเหตุ</h6></div>
+                                    <div class="card-body">
+                                        <textarea class="form-control h-100" id="remark"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Discount + VAT -->
+                                <div class="card mb-3">
+                                    <div class="card-header"><h6 class="mb-0">ส่วนลด/VAT</h6></div>
+                                    <div class="card-body">
+<!-- Checkbox VAT -->
+                                          <div class="form-check mb-3">
+                                              <input class="form-check-input" type="checkbox" id="vat-check" checked onchange="calculateTotal()">
+                                              <label class="form-check-label fw-bold" for="vat-check">
+                                                  ใช้ VAT มาตรฐาน 7%
+                                              </label>
+                                          </div>
+
+                                          <!-- กรอก VAT เอง -->
+                                          <div class="mb-3">
+                                              <label for="customVat" class="form-label fw-bold">กำหนด VAT เอง</label>
+                                              <div class="input-group">
+                                                  <input type="number" id="customVat" class="form-control text-end"
+                                                      placeholder="ใส่ค่า % หรือจำนวนบาท" onchange="calculateTotal()">
+                                                  <span class="input-group-text">บาท / %</span>
+                                              </div>
+                                              <small class="text-muted">* ถ้าไม่ติ๊กกล่องด้านบน จะใช้ค่าที่กรอกตรงนี้แทน</small>
+                                          </div>
+
+                                          <!-- ส่วนลดท้ายบิล -->
+                                          <div class="text-end">
+                                              <label for="extraDiscount" class="form-label fw-bold">ส่วนลดท้ายบิล (บาท)</label>
+                                              <input type="number" id="extraDiscount"
+                                                  class="form-control form-control-sm text-end d-inline-block"
+                                                  value="0" min="0" step="0.01" style="width:150px;"
+                                                  onchange="calculateTotal()">
+                                          </div>
+                                    </div>
+                                </div>
+
+                                <!-- Summary -->
+                                <div class="summary-card flex-fill">
+                                            <h6 class="mb-3">สรุปยอดเงิน</h6>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>ยอดรวม:</span>
+                                                <span id="subtotal">0.00</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>ส่วนลด:</span>
+                                                <span id="total-discount">0.00</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>VAT 7%:</span>
+                                                <span id="vat-amount">0.00</span>
+                                            </div>
+                                            <hr>
+                                            <div class="d-flex justify-content-between">
+                                                <strong>ยอดสุทธิ:</strong>
+                                                <strong id="final-total">0.00</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <span id="subtotal-thaibaht">ศูนย์บาทถ้วน</span>
+                                            </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="button" class="btn btn-primary btn-lg me-2" onclick="savePurchaseOrder()">
+                                <i class="bi bi-save me-1"></i>บันทึกใบสั่งซื้อ
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-lg" onclick="clearForm()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>ล้างข้อมูล
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Section -->
+<div id="approve-section" class="content-section">
+           <div class="card shadow-sm mt-4">
+            <div class="card-header bg-primary text-white d-flex align-items-center">
+            <i class="bi bi-check-circle me-2"></i>
+            <h5 class="mb-0">ยืนยันสถานะใบสั่งซื้อ</h5>
+            </div>
+
+            <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle" id="approve-table">
+                <thead class="table-light">
+                    <tr>
+                    <th>เลขที่ PO</th>
+                    <th>วันที่</th>
+                    <th>ผู้ขาย</th>
+                    <th class="text-end">ยอดรวม (บาท)</th>
+                    <th>สถานะปัจจุบัน</th>
+                    <th>การดำเนินการ</th>
+                    </tr>
+                </thead>
+                <tbody id="approve-tbody">
+                    <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox me-2"></i> กำลังโหลดข้อมูล...
+                    </td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+</div>
+
+        <!-- History Section -->
+        <div id="history-section" class="content-section">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>ประวัติใบสั่งซื้อ</h5>
+                    <button class="btn btn-primary" onclick="loadPurchaseOrders()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>รีเฟรช
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Search and Filter -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="search-input" placeholder="ค้นหา เลขที่ PO, ชื่อผู้ขาย...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="status-filter">
+                                <option value="">ทุกสถานะ</option>
+                                <option value="ร่าง">ร่าง</option>
+                                <option value="อนุมัติ">อนุมัติ</option>
+                                <option value="ยกเลิก">ยกเลิก</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" class="form-control" id="date-from">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" class="form-control" id="date-to">
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-primary w-100" onclick="filterPurchaseOrders()">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Purchase Orders Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="po-history-table">
+                            <thead>
+                                <tr>
+                                    <th>เลขที่ PO</th>
+                                    <th>วันที่</th>
+                                    <th>ผู้ขาย</th>
+                                    <th>ยอดรวม</th>
+                                    <th>สถานะ</th>
+                                    <th>ผู้บันทึก</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="po-history-tbody">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Backup Section -->
+        <div id="backup-section" class="content-section">
+            <div class="backup-section">
+                <h5 class="mb-3"><i class="bi bi-shield-check me-2"></i>จัดการข้อมูล</h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-download me-2"></i>สำรองข้อมูล</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>ดาวน์โหลดไฟล์ db.json ที่มีข้อมูลทั้งหมด</p>
+                                <button class="btn btn-success" onclick="exportBackup()">
+                                    <i class="bi bi-download me-1"></i>ดาวน์โหลด db.json
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-upload me-2"></i>นำเข้าข้อมูล</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>นำเข้าข้อมูลจากไฟล์ db.json</p>
+                                <input type="file" class="form-control mb-2" id="import-file" accept=".json">
+                                <button class="btn btn-info me-2" onclick="importBackup()">
+                                    <i class="bi bi-upload me-1"></i>นำเข้า db.json
+                                </button>
+                                <button class="btn btn-secondary" onclick="loadSampleData()">
+                                    <i class="bi bi-database-add me-1"></i>ข้อมูลตัวอย่าง
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-database me-2"></i>สถานะฐานข้อมูล</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="db-info">
+                                    <p><strong>ชื่อไฟล์:</strong> db.json</p>
+                                    <p><strong>เวอร์ชัน:</strong> <span id="db-version">1</span></p>
+                                    <p><strong>สถานะ:</strong> <span id="db-connection-status">กำลังตรวจสอบ...</span></p>
+                                    <p><strong>จำนวนใบสั่งซื้อ:</strong> <span id="db-po-count">0</span></p>
+                                    <p><strong>จำนวนรายการสินค้า:</strong> <span id="db-item-count">0</span></p>
+                                </div>
+                                <button class="btn btn-primary btn-sm" onclick="refreshDBInfo()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>รีเฟรช
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>โซนอันตราย</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-danger">การดำเนินการนี้จะลบข้อมูลทั้งหมดและไม่สามารถกู้คืนได้</p>
+                                <button class="btn btn-danger" onclick="clearAllData()">
+                                    <i class="bi bi-trash me-1"></i>ล้างข้อมูลทั้งหมด
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Detail/Print Section -->
+        <div id="detail-section" class="content-section">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>รายละเอียดใบสั่งซื้อ</h5>
+                    <div>
+                        <!-- ✅ ปุ่มแก้ไข จะทำงานได้เมื่อมี currentPOId -->
+                        <button class="btn btn-warning me-2 no-print" onclick="if(currentPOId){ editPurchaseOrder(currentPOId) }">
+                            <i class="bi bi-pencil me-1"></i>แก้ไข
+                        </button>
+                        <button class="btn btn-primary me-2 no-print" onclick="printPurchaseOrder()">
+                            <i class="bi bi-printer me-1"></i>พิมพ์
+                        </button>
+                        <button class="btn btn-secondary no-print" onclick="showSection('history')">
+                            <i class="bi bi-arrow-left me-1"></i>กลับ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div id="print-content" class="print-area">
+                        <!-- Print content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="app.js"></script>
+</body>
+</html>
