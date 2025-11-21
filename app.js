@@ -479,7 +479,9 @@ async function loadPOs() {
           <td class="text-center"><span class="badge bg-${statusColor}">${po.status}</span></td>
           <td class="text-center">${po.createdBy}</td>
           <td class="text-center">
-            <button class="btn btn-info btn-sm" data-id="${po.invoiceNo}" onclick="showDetail(this.dataset.id)">ดู</button>
+            <button class="btn btn-info btn-sm rounded-circle" data-id="${po.invoiceNo}" onclick="showDetail(this.dataset.id)">
+              <i class="fa-solid fa-eye"></i>
+            </button>
           </td>
         </tr>`;
     });
@@ -1019,4 +1021,59 @@ async function saveVendor() {
   } catch (err) {
     Swal.fire("ผิดพลาด", "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "error");
   }
+}
+
+function loadPurchaseOrders() {
+
+  loadPOs();  // โหลดตารางทั้งหมด
+  loadRecentPOs(); // โหลดรายการล่าสุด
+
+  setTimeout(() => Swal.close(), 800);
+}
+
+function filterPurchaseOrders() {
+  const keyword = document.getElementById("search-input").value.toLowerCase();
+  const status = document.getElementById("status-filter").value;
+  const dateFrom = document.getElementById("date-from").value;
+  const dateTo = document.getElementById("date-to").value;
+
+  const rows = document.querySelectorAll("#po-history-tbody tr");
+
+  rows.forEach(row => {
+    const cols = row.querySelectorAll("td");
+
+    const poNo = cols[0]?.innerText.toLowerCase();
+    const poDate = cols[1]?.innerText;         // dd/mm/yyyy (after convert)
+    const supplier = cols[2]?.innerText.toLowerCase();
+    const poStatus = cols[4]?.innerText.trim();
+
+    let show = true;
+
+    // 🔍 keyword match (PO, supplier)
+    if (keyword && !(poNo.includes(keyword) || supplier.includes(keyword))) {
+      show = false;
+    }
+
+    // 🎯 status filter
+    if (status && poStatus !== status) {
+      show = false;
+    }
+
+    // 📅 date filter
+    if (dateFrom) {
+      const [d,m,y] = poDate.split("/");
+      const poTime = new Date(`${y}-${m}-${d}`).getTime();
+      const fromTime = new Date(dateFrom).getTime();
+      if (poTime < fromTime) show = false;
+    }
+
+    if (dateTo) {
+      const [d,m,y] = poDate.split("/");
+      const poTime = new Date(`${y}-${m}-${d}`).getTime();
+      const toTime = new Date(dateTo).getTime();
+      if (poTime > toTime) show = false;
+    }
+
+    row.style.display = show ? "" : "none";
+  });
 }
