@@ -168,7 +168,7 @@ async function autoFillVendor() {
 }
 
 function lockVendorFields(lock) {
-  const fields = ["taxID", "phone", "address", "credit", "attn"];
+  const fields = ["taxID", "phone", "address", "credit"];
   fields.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -885,34 +885,35 @@ for (let i = items.length + 1; i <= maxRows; i++) {
   border-collapse: collapse;
 ">
   <tr>
-<td colspan="3" rowspan="4"
-    style="
-      width:70%;
-      padding:4px;
-      position:relative;
-      height:120px;
-    ">
+      <td colspan="3" rowspan="4"
+          style="
+            width:70%;
+            padding:0;
+            position:relative;
+            height:120px;
+          ">
 
-  <!-- หมายเหตุ -->
-  <div>
-    หมายเหตุ: ${po.remark || " "}
-  </div>
+        <!-- หมายเหตุ (ชิดบนสุด 100%) -->
+        <div style="
+              padding:4px;
+              margin:0;
+            ">
+          หมายเหตุ: ${po.remark || " "}
+        </div>
 
-  <!-- ⭐ จำนวนเงินไทย ชิดขอบล่าง โดยไม่ดันตารางขวา ⭐ -->
-  <div style="
-      position:absolute;
-      bottom:4px;
-      left:0;
-      width:100%;
-      text-align:center;
-      font-weight:bold;
-    ">
-    (${thaiBaht(po.finalTotal)})
-  </div>
+        <!-- ข้อความไทยบาท (ชิดล่างสุด) -->
+        <div style="
+            position:absolute;
+            bottom:4px;
+            left:0;
+            width:100%;
+            text-align:center;
+            font-weight:bold;
+          ">
+          (${thaiBaht(po.finalTotal)})
+        </div>
 
-</td>
-
-
+      </td>
     <td style="width:30%; padding:4px;">รวมเป็นเงิน:</td>
     <td colspan="2" class="text-end" style="width:35%; padding:4px;">
       ${formatNumber(po.subtotal)}
