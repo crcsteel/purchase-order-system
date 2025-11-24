@@ -5,6 +5,8 @@ const API_BASE = "https://script.google.com/macros/s/AKfycbzreWtci5acYFMCtYiMULj
 
 
 let currentPOId = null;
+window.isEditing = false;        // ⭐ ใช้เช็คว่าเป็นโหมดแก้ไข
+window.originalInvoiceNo = null; // ⭐ เก็บเลข PO เดิมตอนเข้าแก้
 
 function toThaiDate(dateStr) {
   if (!dateStr) return "";
@@ -26,6 +28,48 @@ function formatNumber(n) {
   return Number(n)
     .toFixed(2)
     .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function thaiBaht(amount) {
+  let num = Math.floor(amount);
+  if (num === 0) return "ศูนย์บาทถ้วน";
+
+  const t = ["ศูนย์","หนึ่ง","สอง","สาม","สี่","ห้า","หก","เจ็ด","แปด","เก้า"];
+  const u = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];
+
+  let s = "";
+  let digits = num.toString();
+  let len = digits.length;
+
+  for (let i = 0; i < len; i++) {
+    let d = parseInt(digits[i]);
+    let pos = len - i - 1; // 0 = หน่วย
+
+    if (d === 0) continue;
+
+    // หลักหน่วย
+    if (pos === 0) {
+      if (d === 1 && len > 1) s += "หนึ่ง";
+      else s += t[d];
+    }
+
+    // หลักสิบ
+    else if (pos === 1) {
+      if (d === 1) s += "สิบ";
+      else if (d === 2) s += "ยี่สิบ";
+      else s += t[d] + "สิบ";
+    }
+
+    // หลักร้อยขึ้นไป
+    else {
+      if (d === 1) s += "หนึ่ง";
+      else s += t[d];
+    }
+
+    s += u[pos];
+  }
+
+  return s + "บาทถ้วน";
 }
 
 // ===========================================
@@ -332,10 +376,19 @@ function clearForm() {
   document.getElementById("final-total").innerText = "0.00";
   document.getElementById("subtotal-thaibaht").innerText = "ศูนย์บาทถ้วน";
 
+  // ⭐ รีเซ็ตโหมดแก้ไข
   window.isEditing = false;
+  window.originalInvoiceNo = null;
+
+  // ⭐ คืนค่า invoiceNo ให้แก้ได้เหมือนเดิม
+  const invoiceField = document.getElementById("invoiceNo");
+  invoiceField.readOnly = false;
+  invoiceField.style.background = "white";
+
   newPONumber();
   addItemRow();
 }
+
 
 // ===========================================
 // 💰 CALCULATION
@@ -372,21 +425,6 @@ function calculateTotal() {
   document.getElementById("subtotal-thaibaht").innerText = thaiBaht(finalTotal);
 }
 
-function thaiBaht(amount) {
-  if (amount === 0) return "ศูนย์บาทถ้วน";
-  const n = ["ศูนย์","หนึ่ง","สอง","สาม","สี่","ห้า","หก","เจ็ด","แปด","เก้า"];
-  const u = ["","สิบ","ร้อย","พัน","หมื่น","แสน","ล้าน"];
-  let s = "", t = Math.floor(amount).toString();
-  for (let i = 0; i < t.length; i++) {
-    const d = parseInt(t[t.length - i - 1]);
-    if (d !== 0) {
-      s = (u[i] === "สิบ" && d === 2 ? "ยี่" :
-           u[i] === "สิบ" && d === 1 ? "" :
-           u[i] !== "สิบ" && d === 1 && i > 0 ? "เอ็ด" : n[d]) + u[i] + s;
-    }
-  }
-  return s + "บาทถ้วน";
-}
 
 // ===========================================
 // 💾 SAVE / LOAD
@@ -404,25 +442,29 @@ async function savePurchaseOrder() {
     };
   });
 
-  const poData = {
-    invoiceNo: document.getElementById("invoiceNo").value,
-    poDate: document.getElementById("poDate").value,
-    supplierName: document.getElementById("supplierName").value,
-    taxID: document.getElementById("taxID").value,
-    phone: document.getElementById("phone").value,
-    address: document.getElementById("address").value,
-    credit: document.getElementById("credit").value,
-    attn: document.getElementById("attn").value,
-    referNote: document.getElementById("referNote").value,
-    remark: document.getElementById("remark").value,
-    subtotal: parseFloat(document.getElementById("subtotal").innerText),
-    discount: parseFloat(document.getElementById("total-discount").innerText),
-    vat: parseFloat(document.getElementById("vat-amount").innerText),
-    finalTotal: parseFloat(document.getElementById("final-total").innerText),
-    createdBy: localStorage.getItem("username"),
-    status: "ร่าง",
-    items,
-  };
+const poData = {
+  invoiceNo: document.getElementById("invoiceNo").value,
+  poDate: document.getElementById("poDate").value,
+  supplierName: document.getElementById("supplierName").value,
+  taxID: document.getElementById("taxID").value,
+  phone: document.getElementById("phone").value,
+  address: document.getElementById("address").value,
+  credit: document.getElementById("credit").value,
+  attn: document.getElementById("attn").value,
+  referNote: document.getElementById("referNote").value,
+  remark: document.getElementById("remark").value,
+  subtotal: parseFloat(document.getElementById("subtotal").innerText),
+  discount: parseFloat(document.getElementById("total-discount").innerText),
+  vat: parseFloat(document.getElementById("vat-amount").innerText),
+  finalTotal: parseFloat(document.getElementById("final-total").innerText),
+  createdBy: localStorage.getItem("username"),
+  status: "ร่าง",
+  items,
+  // ⭐ เพิ่มสองอันนี้
+  isEdit: !!window.isEditing,
+  originalInvoiceNo: window.originalInvoiceNo || document.getElementById("invoiceNo").value,
+};
+
 
   Swal.fire({ title: "กำลังบันทึก...", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
@@ -843,10 +885,33 @@ for (let i = items.length + 1; i <= maxRows; i++) {
   border-collapse: collapse;
 ">
   <tr>
-    <td colspan="3" rowspan="4"
-        style="width:70%; vertical-align:top; padding:4px;">
-      หมายเหตุ: ${po.remark || " "}
-    </td>
+<td colspan="3" rowspan="4"
+    style="
+      width:70%;
+      padding:4px;
+      position:relative;
+      height:120px;
+    ">
+
+  <!-- หมายเหตุ -->
+  <div>
+    หมายเหตุ: ${po.remark || " "}
+  </div>
+
+  <!-- ⭐ จำนวนเงินไทย ชิดขอบล่าง โดยไม่ดันตารางขวา ⭐ -->
+  <div style="
+      position:absolute;
+      bottom:4px;
+      left:0;
+      width:100%;
+      text-align:center;
+      font-weight:bold;
+    ">
+    (${thaiBaht(po.finalTotal)})
+  </div>
+
+</td>
+
 
     <td style="width:30%; padding:4px;">รวมเป็นเงิน:</td>
     <td colspan="2" class="text-end" style="width:35%; padding:4px;">
@@ -940,11 +1005,14 @@ async function editPurchaseOrder(invoiceNo) {
     document.getElementById("referNote").value = po.referNote;
     document.getElementById("remark").value = po.remark;
 
+    // 🔒 ไม่ให้แก้เลขที่เอกสาร (แล้วแต่ต้องการ)
     const invoiceField = document.getElementById("invoiceNo");
-    invoiceField.setAttribute("readonly", true);
+    invoiceField.readOnly = true;
     invoiceField.style.background = "#e9ecef";
 
+    // ⭐ ตั้งโหมดเป็นแก้ไข + เก็บเลข PO เดิม
     window.isEditing = true;
+    window.originalInvoiceNo = po.invoiceNo;
 
     const tbody = document.getElementById("items-tbody");
     tbody.innerHTML = "";
@@ -975,6 +1043,7 @@ async function editPurchaseOrder(invoiceNo) {
     Swal.fire("ผิดพลาด", "ไม่สามารถโหลดข้อมูล PO สำหรับแก้ไขได้", "error");
   }
 }
+
 
 function printPurchaseOrder() {
   window.print();
