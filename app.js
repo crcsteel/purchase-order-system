@@ -156,7 +156,6 @@ async function autoFillVendor() {
       document.getElementById("phone").value = v.phone || "";
       document.getElementById("address").value = v.address || "";
       document.getElementById("credit").value = v.credit || "";
-      document.getElementById("attn").value = v.attn || "";
 
       lockVendorFields(true);
     } else {
